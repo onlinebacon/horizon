@@ -5,9 +5,8 @@ const space = 5;
 const minHeight = 0.0254;
 
 let earth_radius = 6371008.8;
-let height = 100000 * 0.3048;
-let scale = 300/6371008.8;
-let yOffset = 0;
+let height = 20 * 0.3048;
+let scale = 300/earth_radius;
 
 let hip;
 let observer;
@@ -58,7 +57,7 @@ const strAngle = (val) => {
 const transformPoint = ([ x, y ]) => {
 	return [
 		canvas.width/2 + x*scale,
-		canvas.height/2 - (y - yOffset)*scale,
+		canvas.height/2 - (y - earth_radius)*scale,
 	];
 };
 
@@ -111,14 +110,6 @@ const calculate = () => {
 	d = Math.sqrt(hip**2 - earth_radius**2);
 	dip = Math.acos(earth_radius/hip);
 	tangent = [ Math.sin(dip)*earth_radius, Math.cos(dip)*earth_radius ];
-	const [ ox, oy ] = observer;
-	const [ tx, ty ] = tangent;
-	const dx = tx - ox;
-	const dy = oy - ty;
-	const s1 = canvas.height*0.8/dy;
-	const s2 = canvas.width*0.4/dx;
-	scale = Math.min(s1, s2);
-	yOffset = (ty + oy)/2;
 };
 
 const clear = () => {
@@ -211,24 +202,80 @@ const render = () => {
 	drawRuler(transformPoint(surface), transformPoint(observer), strDist(height));
 };
 
-const resizeCanvas = () => {
-	canvas.width = window.innerWidth;
-	canvas.height = window.innerHeight;
+const updateCanvas = () => {
 	calculate();
 	render();
 };
 
+const resizeCanvas = () => {
+	const panel = document.querySelector('#panel');
+	const panelHeight = Number(window.getComputedStyle(panel).height.replace('px', ''));
+	canvas.width = window.innerWidth;
+	canvas.height = window.innerHeight - panelHeight - 40;
+	updateCanvas();
+};
+
+const setupInput = ({ name, onchange, toStr, parse, init, min, max, exp }) => {
+	const inputText = document.querySelector(`[name="${name}"]`);
+	const inputRange = inputText.parentElement.querySelector('input[type="range"]');
+	const range = max - min;
+	const logMin = Math.log(min);
+	const logRange = Math.log(max) - logMin;
+	const fromRange = () => {
+		if (exp) {
+			return Math.exp(logMin + inputRange.value*logRange);
+		} else {
+			return inputRange.value*range + min;
+		}
+	};
+	const setRange = (val) => {
+		if (exp) {
+			inputRange.value = (Math.log(val) - logMin)/logRange;
+		} else {
+			inputRange.value = (val - min)/range;
+		}
+	};
+	inputRange.setAttribute('min', '0');
+	inputRange.setAttribute('max', '1');
+	inputRange.setAttribute('step', '0.001');
+	inputText.addEventListener('change', () => {
+		const val = parse(inputText.value);
+		onchange(val);
+		updateCanvas();
+	});
+	inputRange.addEventListener('input', () => {
+		const val = fromRange();
+		inputText.value = toStr(val);
+		onchange(val);
+		updateCanvas();
+	});
+	onchange(init);
+	inputText.value = toStr(init);
+	setRange(init);
+};
+
+setupInput({
+	name: 'height',
+	onchange: (val) => height = val,
+	toStr: (val) => val.toString(),
+	parse: (val) => Number(val),
+	init: 408e3,
+	min: 0.0254,
+	max: earth_radius,
+	exp: true,
+});
+
+setupInput({
+	name: 'scale',
+	onchange: (val) => scale = val,
+	toStr: (val) => Number(val.toPrecision(3)).toString(),
+	parse: (val) => Number(val),
+	init: Number((300/earth_radius).toPrecision(2)),
+	min: 1e-5,
+	max: 1,
+	exp: true,
+});
+
 resizeCanvas();
 
 window.addEventListener('resize', resizeCanvas);
-window.addEventListener('wheel', e => {
-	const { deltaY } = e;
-	if (deltaY > 0) {
-		height = Math.exp(Math.log(height) + 0.025);
-	}
-	if (deltaY < 0) {
-		height = Math.max(minHeight, Math.exp(Math.log(height) - 0.025));
-	}
-	calculate();
-	render();
-});

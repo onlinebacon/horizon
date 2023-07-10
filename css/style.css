@@ -3,3 +3,35 @@ body {
 	margin: 0px;
 	overflow: hidden;
 }
+#panel {
+	font-family: Arial, Helvetica, sans-serif;
+	color: #ccc;
+	font-size: 0px;
+	font-weight: bold;
+	background-color: rgba(64, 64, 64, 0.5);
+	position: fixed;
+	left: 0px;
+	right: 0px;
+	bottom: 0px;
+	padding: 20px;
+}
+.input:not(:nth-child(1)) {
+	margin-top: 10px;
+}
+.input .title {
+	font-size: 12px;
+}
+.input input {
+	vertical-align: middle;
+}
+.input input[type="text"] {
+	border: 1px solid #444;
+	background-color: #222;
+	color: #aaa;
+	width: 128px;
+	margin-right: 10px;
+	padding: 2px 5px;
+}
+.input input[type="range"] {
+	width: calc(100% - 145px);
+}
