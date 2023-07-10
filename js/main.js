@@ -38,18 +38,18 @@ const strDist = (val) => {
 			break;
 		}
 	}
-	if (val >= 1e5) {
+	if (val >= 1e3) {
 		return Math.round(val).toString() + ' ' + suffix;
 	}
-	return Number(val.toPrecision(5)).toString() + ' ' + suffix;
+	return Number(val.toPrecision(3)).toString() + ' ' + suffix;
 };
 
 const strAngle = (val) => {
-	const arcmin = 1/60;
+	const arcMin = 1/60;
 	if (val >= 1) {
 		return Number(val.toFixed(1)).toString() + '°';
 	}
-	if (val >= arcmin) {
+	if (val >= arcMin) {
 		return Number((val*60).toFixed(1)).toString() + "'";
 	}
 	return Number((val*3600).toFixed(1)).toString() + '"';
@@ -224,10 +224,10 @@ window.addEventListener('resize', resizeCanvas);
 window.addEventListener('wheel', e => {
 	const { deltaY } = e;
 	if (deltaY > 0) {
-		height = Math.exp(Math.log(height) + 0.05);
+		height = Math.exp(Math.log(height) + 0.025);
 	}
 	if (deltaY < 0) {
-		height = Math.max(minHeight, Math.exp(Math.log(height) - 0.05));
+		height = Math.max(minHeight, Math.exp(Math.log(height) - 0.025));
 	}
 	calculate();
 	render();
