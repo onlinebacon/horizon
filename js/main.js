@@ -14,6 +14,11 @@ let d;
 let dip;
 let tangent;
 let surface;
+let drop;
+let dropTop;
+
+let offsetX;
+let offsetY;
 
 const units = [{
 	name: 'mi',
@@ -26,6 +31,13 @@ const units = [{
 	val: 0.0254,
 }];
 
+const round = (val, digits = 4) => {
+	if (val >= 10**digits) {
+		return Math.round(val);
+	}
+	return Number(val.toPrecision(digits));
+};
+
 const strDist = (val) => {
 	let suffix = 'm';
 	const last = units.length - 1;
@@ -37,10 +49,7 @@ const strDist = (val) => {
 			break;
 		}
 	}
-	if (val >= 1e3) {
-		return Math.round(val).toString() + ' ' + suffix;
-	}
-	return Number(val.toPrecision(3)).toString() + ' ' + suffix;
+	return `${round(val, 3)} ${suffix}`;
 };
 
 const strAngle = (val) => {
@@ -56,8 +65,8 @@ const strAngle = (val) => {
 
 const transformPoint = ([ x, y ]) => {
 	return [
-		canvas.width/2 + x*scale,
-		canvas.height/2 - (y - earth_radius)*scale,
+		canvas.width/2 + (x - offsetX)*scale,
+		canvas.height/2 - (y - offsetY)*scale,
 	];
 };
 
@@ -110,6 +119,10 @@ const calculate = () => {
 	d = Math.sqrt(hip**2 - earth_radius**2);
 	dip = Math.acos(earth_radius/hip);
 	tangent = [ Math.sin(dip)*earth_radius, Math.cos(dip)*earth_radius ];
+	drop = observer[1] - tangent[1];
+	dropTop = [ tangent[0], observer[1] ];
+	offsetY = (observer[1] + tangent[1])/2;
+	offsetX = 0;
 };
 
 const clear = () => {
@@ -187,6 +200,14 @@ const drawDip = () => {
 	ctx.fillText(strAngle(dip/Math.PI*180), vx, vy - space);
 };
 
+const drawDrop = () => {
+	ctx.strokeStyle = '#777';
+	ctx.beginPath();
+	ctx.moveTo(...transformPoint(dropTop));
+	ctx.lineTo(...transformPoint(tangent));
+	ctx.stroke();
+};
+
 const render = () => {
 	clear();
 	drawEarth();
@@ -194,12 +215,15 @@ const render = () => {
 	drawHorizontal();
 	drawSemiTriangle();
 	drawTangentLine();
+	drawDrop();
 	drawPoint(observer, '#fff');
 	drawPoint(tangent, '#fff');
 	drawPoint(surface, '#fff');
 	drawPoint([ 0, 0 ], '#fff');
+	drawPoint(dropTop, '#fff');
 	drawRuler(transformPoint(observer), transformPoint(tangent), strDist(d));
 	drawRuler(transformPoint(surface), transformPoint(observer), strDist(height));
+	drawRuler(transformPoint(dropTop), transformPoint(tangent), strDist(drop));
 };
 
 const updateCanvas = () => {
@@ -257,7 +281,7 @@ const setupInput = ({ name, onchange, toStr, parse, init, min, max, exp }) => {
 setupInput({
 	name: 'height',
 	onchange: (val) => height = val,
-	toStr: (val) => val.toString(),
+	toStr: (val) => round(val).toString(),
 	parse: (val) => Number(val),
 	init: 408e3,
 	min: 0.0254,
@@ -268,7 +292,7 @@ setupInput({
 setupInput({
 	name: 'scale',
 	onchange: (val) => scale = val,
-	toStr: (val) => Number(val.toPrecision(3)).toString(),
+	toStr: (val) => round(val).toString(),
 	parse: (val) => Number(val),
 	init: Number((300/earth_radius).toPrecision(2)),
 	min: 1e-5,
