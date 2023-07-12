@@ -121,7 +121,7 @@ const calculate = () => {
 	tangent = [ Math.sin(dip)*earth_radius, Math.cos(dip)*earth_radius ];
 	drop = observer[1] - tangent[1];
 	dropTop = [ tangent[0], observer[1] ];
-	offsetY = (observer[1] + tangent[1])/2;
+	offsetY = earth_radius;
 	offsetX = 0;
 };
 
