@@ -63,14 +63,14 @@ const strAngle = (val) => {
 	return Number((val*3600).toFixed(1)).toString() + '"';
 };
 
-const transformPoint = ([ x, y ]) => {
+const projectPoint = ([ x, y ]) => {
 	return [
 		canvas.width/2 + (x - offsetX)*scale,
 		canvas.height/2 - (y - offsetY)*scale,
 	];
 };
 
-const transformDist = (val) => {
+const projectLength = (val) => {
 	return val*scale;
 };
 
@@ -133,13 +133,13 @@ const clear = () => {
 const drawEarth = () => {
 	ctx.strokeStyle = '#777';
 	ctx.beginPath();
-	ctx.arc(...transformPoint([ 0, 0 ]), transformDist(earth_radius), 0, Math.PI*2);
+	ctx.arc(...projectPoint([ 0, 0 ]), projectLength(earth_radius), 0, Math.PI*2);
 	ctx.stroke();	
 };
 
 const drawPoint = ([ x, y ], color) => {
 	ctx.fillStyle = color;
-	[ x, y ] = transformPoint([ x, y ]);
+	[ x, y ] = projectPoint([ x, y ]);
 	ctx.beginPath();
 	ctx.arc(x, y, 2, 0, Math.PI*2);
 	ctx.fill();
@@ -156,17 +156,17 @@ const drawTangentPoint = () => {
 const drawTangentLine = () => {
 	ctx.strokeStyle = '#f70';
 	ctx.beginPath();
-	ctx.moveTo(...transformPoint(observer));
-	ctx.lineTo(...transformPoint(extend(observer, tangent, d + earth_radius)));
+	ctx.moveTo(...projectPoint(observer));
+	ctx.lineTo(...projectPoint(extend(observer, tangent, d + earth_radius)));
 	ctx.stroke();
 };
 
 const drawSemiTriangle = () => {
 	ctx.strokeStyle = '#07f';
 	ctx.beginPath();
-	ctx.moveTo(...transformPoint(observer));
-	ctx.lineTo(...transformPoint([ 0, 0 ]));
-	ctx.lineTo(...transformPoint(tangent));
+	ctx.moveTo(...projectPoint(observer));
+	ctx.lineTo(...projectPoint([ 0, 0 ]));
+	ctx.lineTo(...projectPoint(tangent));
 	ctx.stroke();
 };
 
@@ -179,8 +179,8 @@ const drawHorizontal = () => {
 	const b = [ x1, oy ];
 	ctx.strokeStyle = '#777';
 	ctx.beginPath();
-	ctx.moveTo(...transformPoint(a));
-	ctx.lineTo(...transformPoint(b));
+	ctx.moveTo(...projectPoint(a));
+	ctx.lineTo(...projectPoint(b));
 	ctx.stroke();
 };
 
@@ -190,21 +190,21 @@ const drawDip = () => {
 	const [ , y ] = observer;
 	ctx.strokeStyle = '#fff';
 	ctx.beginPath();
-	ctx.arc(...transformPoint(observer), transformDist(x), 0, dip);
+	ctx.arc(...projectPoint(observer), projectLength(x), 0, dip);
 	ctx.stroke();
 	ctx.fillStyle = '#fff';
 	ctx.textAlign = 'left';
 	ctx.textBaseline = 'bottom';
 	ctx.font = '14px arial';
-	const [ vx, vy ] = transformPoint([ x, y ]);
+	const [ vx, vy ] = projectPoint([ x, y ]);
 	ctx.fillText(strAngle(dip/Math.PI*180), vx, vy - space);
 };
 
 const drawDrop = () => {
 	ctx.strokeStyle = '#777';
 	ctx.beginPath();
-	ctx.moveTo(...transformPoint(dropTop));
-	ctx.lineTo(...transformPoint(tangent));
+	ctx.moveTo(...projectPoint(dropTop));
+	ctx.lineTo(...projectPoint(tangent));
 	ctx.stroke();
 };
 
@@ -221,9 +221,9 @@ const render = () => {
 	drawPoint(surface, '#fff');
 	drawPoint([ 0, 0 ], '#fff');
 	drawPoint(dropTop, '#fff');
-	drawRuler(transformPoint(observer), transformPoint(tangent), strDist(d));
-	drawRuler(transformPoint(surface), transformPoint(observer), strDist(height));
-	drawRuler(transformPoint(dropTop), transformPoint(tangent), strDist(drop));
+	drawRuler(projectPoint(observer), projectPoint(tangent), strDist(d));
+	drawRuler(projectPoint(surface), projectPoint(observer), strDist(height));
+	drawRuler(projectPoint(dropTop), projectPoint(tangent), strDist(drop));
 };
 
 const updateCanvas = () => {
